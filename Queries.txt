@@ -1,0 +1,32 @@
+db.transactions.aggregate([
+  {
+    $group:{
+      _id:"$user_id",
+      totalWithdrawals:{
+     $sum:{
+          $cond:[{$eq:["$type","withdraw"]},"$amount",0]
+        
+      },
+      totalDeposits: {
+        $sum:{
+          $cond:[{$eq:["$type","deposit"]},"$amount",0]
+        }
+      }
+    }
+  },
+   {
+    $lookup:{
+      from:"users",
+      localField:"_id",
+      foreignField:"_id",
+    }
+  },
+  {
+ $unwind:"$user"
+  },
+  {
+    $addFields:
+      totalBalance:{$subtract:["$totalDeposits","$totalWithdrawals"]}
+    
+  },
+])
